@@ -1,0 +1,7 @@
+rust_input: crate::api
+rust_output: rust/src/bridge_generated.rs
+dart_output: lib/src/bridge_generated.dart
+dart_entrypoint_class_name: RustLib
+rust_root: rust/
+dart_format_line_length: 120
+
