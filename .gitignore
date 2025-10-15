@@ -43,14 +43,7 @@ app.*.map.json
 /rust/Cargo.lock
 **/.cargo/
 
-# Flutter Rust Bridge
-/lib/src/bridge_generated.dart
-/lib/src/bridge_generated.freezed.dart
-/lib/src/bridge_generated.io.dart
-/lib/src/bridge_generated.web.dart
-/rust/src/bridge_generated.rs
-/rust/src/bridge_generated.io.rs
-/rust/src/bridge_generated.web.rs
-
-
 /example
+android/src/main/jniLibs/
+example/**/jniLibs/
+rust/target/

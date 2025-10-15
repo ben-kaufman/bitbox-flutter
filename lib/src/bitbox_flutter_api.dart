@@ -1,5 +1,5 @@
-import 'bridge_generated.dart/api.dart' as api;
-import 'bridge_generated.dart/frb_generated.dart';
+import 'rust/api.dart' as api;
+import 'rust/frb_generated.dart';
 import 'bitbox_flutter_platform.dart';
 import 'usb_coordinator.dart';
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'bitbox_flutter_platform.dart';
-import 'bridge_generated.dart/api.dart' as api;
+import 'rust/api.dart' as api;
 
 /// USB Coordinator for BitBox02 Communication
 /// 

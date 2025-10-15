@@ -1,4 +1,4 @@
-# bitbox_flutter
+# bitbox_flutter (experimental)
 
 Flutter bindings for the BitBox02 hardware wallet using Rust and flutter_rust_bridge.
 
