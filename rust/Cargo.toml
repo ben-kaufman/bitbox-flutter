@@ -1,5 +1,5 @@
 [package]
-name = "bitbox_flutter"
+name = "bitbox"
 version = "0.1.0"
 edition = "2021"
 
@@ -14,6 +14,9 @@ lazy_static = "1.5"
 bitcoin = { version = "0.32", features = ["base64"] }
 bitbox-api = { git = "https://github.com/ben-kaufman/bitbox-api-rs", rev = "9f20d81686fa8321c11586cbdc967cc11f3ab26a", default-features = false, features = ["tokio", "multithreaded"] }
 async-trait = "0.1"
+
+[features]
+bull_sdk = []
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

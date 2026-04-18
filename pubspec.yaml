@@ -1,4 +1,4 @@
-name: bitbox_flutter
+name: bitbox
 description: Flutter bindings for BitBox02 hardware wallet using Rust
 version: 0.1.0
 publish_to: 'none'
