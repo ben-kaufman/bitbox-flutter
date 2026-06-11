@@ -40,7 +40,6 @@ app.*.map.json
 
 # Rust
 /rust/target/
-/rust/Cargo.lock
 **/.cargo/
 
 /example
