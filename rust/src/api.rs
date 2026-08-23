@@ -1,4 +1,5 @@
 use crate::wallet_policy::{ParsedWalletPolicy, PreparedWalletPolicy};
+use crate::wallet_policy_psbt::{filter_psbt_for_device_keys, validate_supported_sighashes};
 use anyhow::{anyhow, bail, Result};
 use bitbox_api::{NoiseConfigNoCache, PairedBitBox, PairingBitBox};
 use bitcoin::bip32::{DerivationPath, Fingerprint, Xpub};
@@ -268,22 +269,17 @@ pub async fn verify_wallet_address(
     descriptor: String,
     testnet: bool,
     keychain: BitBoxKeychain,
-    index: u32,
+    index: i64,
 ) -> Result<String> {
-    if index >= 1 << 31 {
-        bail!("address index must be less than 2^31");
-    }
+    let index = address_index(index)?;
 
     let devices = BITBOX_DEVICES.lock().await;
     let bitbox = devices
         .get(&serial_number)
         .ok_or_else(|| anyhow!("Device not paired"))?;
     let policy = prepare_wallet_policy(bitbox, &descriptor, testnet).await?;
-    let branch = match keychain {
-        BitBoxKeychain::Receive => 0,
-        BitBoxKeychain::Change => 1,
-    };
-    let keypath = policy.address_keypath(branch, index);
+    let keypath =
+        policy.address_keypath(matches!(keychain, BitBoxKeychain::Change), index);
 
     bitbox
         .btc_address(
@@ -310,16 +306,30 @@ pub async fn sign_wallet_psbt(
     let policy = prepare_wallet_policy(bitbox, &descriptor, testnet).await?;
     let mut psbt = bitcoin::psbt::Psbt::from_str(psbt_str.trim())
         .map_err(|error| anyhow!("Invalid PSBT: {error:?}"))?;
+    validate_supported_sighashes(&psbt)?;
 
-    bitbox
-        .btc_sign_psbt(
-            coin(testnet),
-            &mut psbt,
-            Some(policy.script_config_with_keypath()),
-            bitbox_api::pb::btc_sign_init_request::FormatUnit::Default,
-        )
-        .await
-        .map_err(|error| anyhow!("Signing failed: {error:?}"))?;
+    let mut signed = false;
+    while let Some((mut signing_psbt, device_key)) =
+        filter_psbt_for_device_keys(&psbt, policy.device_keys())?
+    {
+        bitbox
+            .btc_sign_psbt(
+                coin(testnet),
+                &mut signing_psbt,
+                Some(policy.script_config_with_keypath(device_key)),
+                bitbox_api::pb::btc_sign_init_request::FormatUnit::Default,
+            )
+            .await
+            .map_err(|error| anyhow!("Signing failed: {error:?}"))?;
+        crate::wallet_policy_psbt::restore_existing_signatures(&mut signing_psbt, &psbt);
+        if !crate::wallet_policy_psbt::merge_signatures(&mut psbt, signing_psbt)? {
+            bail!("BitBox did not add a signature");
+        }
+        signed = true;
+    }
+    if !signed {
+        bail!("PSBT does not contain an unsigned key controlled by the connected BitBox");
+    }
 
     Ok(psbt.to_string())
 }
@@ -378,7 +388,11 @@ fn ensure_firmware_support(
 ) -> Result<()> {
     let version = bitbox.version();
     let version = (version.major, version.minor, version.patch);
-    if policy.is_miniscript() {
+    if policy.is_taproot() {
+        if version < (9, 21, 0) {
+            bail!("BitBox firmware 9.21.0 or newer is required for Taproot policies");
+        }
+    } else if policy.is_miniscript() {
         if version < (9, 15, 0) {
             bail!("BitBox firmware 9.15.0 or newer is required for Miniscript policies");
         }
@@ -393,5 +407,27 @@ fn coin(testnet: bool) -> bitbox_api::pb::BtcCoin {
         bitbox_api::pb::BtcCoin::Tbtc
     } else {
         bitbox_api::pb::BtcCoin::Btc
+    }
+}
+
+const MAX_RECEIVE_ADDRESS_INDEX: i64 = 9_999;
+
+fn address_index(index: i64) -> Result<u32> {
+    if !(0..=MAX_RECEIVE_ADDRESS_INDEX).contains(&index) {
+        bail!("address index must be between 0 and {MAX_RECEIVE_ADDRESS_INDEX}");
+    }
+    Ok(index as u32)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::address_index;
+
+    #[test]
+    fn validates_address_index_before_converting_to_u32() {
+        assert_eq!(address_index(0).unwrap(), 0);
+        assert_eq!(address_index(9_999).unwrap(), 9_999);
+        assert!(address_index(-1).is_err());
+        assert!(address_index(10_000).is_err());
     }
 }

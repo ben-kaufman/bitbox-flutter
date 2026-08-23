@@ -79,7 +79,7 @@ Future<String> verifyWalletAddress({
   required String descriptor,
   required bool testnet,
   required BitBoxKeychain keychain,
-  required int index,
+  required PlatformInt64 index,
 }) => RustLib.instance.api.crateApiVerifyWalletAddress(
   serialNumber: serialNumber,
   descriptor: descriptor,

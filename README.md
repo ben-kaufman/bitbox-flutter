@@ -81,6 +81,29 @@ final confirmed = await BitBoxFlutterApi.confirmPairing(
 final fingerprint = await BitBoxFlutterApi.getRootFingerprint(devices.first.serialNumber);
 ```
 
+### Wallet policies
+
+The wallet-policy APIs support native and nested SegWit multisig, native SegWit
+Miniscript, and Taproot descriptors. Every signature key must be an extended
+public key with exactly two unhardened multipath branches; the first branch is
+used for receive addresses and the second for change addresses. The descriptor
+network must match the selected device network. Native and nested SegWit
+multisig policies require the standard `<0;1>` branch pair. Other wallet-policy
+descriptors may use one or more custom disjoint pairs in the `/<M;N>/*` form.
+Derivation after the branch is not supported. Exactly one account xpub in the
+policy may belong to the connected BitBox, including a Taproot internal key.
+Miniscript hashlocks are not supported by the BitBox firmware.
+
+For example:
+
+```text
+wsh(sortedmulti(2,[f00dbabe/48'/0'/0'/2']xpub.../<0;1>/*,[deadbeef/48'/0'/0'/2']xpub.../<0;1>/*))
+```
+
+Use `isWalletPolicyRegistered` and `registerWalletPolicy` before
+`verifyWalletAddress` or `signWalletPsbt`. Unsupported descriptors and firmware
+versions are rejected instead of being approximated.
+
 ## Building for Production
 
 ### Android
@@ -102,4 +125,3 @@ Apache-2.0
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
