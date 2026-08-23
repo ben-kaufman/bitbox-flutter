@@ -6,8 +6,9 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+// These functions are ignored because they are not marked as `pub`: `address_index`, `coin`, `ensure_firmware_support`, `prepare_wallet_policy`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `BITBOX_DEVICES`, `BITBOX_PAIRING_DEVICES`
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `deref`, `deref`, `fmt`, `initialize`, `initialize`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_fields_are_eq`, `clone`, `clone`, `deref`, `deref`, `eq`, `fmt`, `fmt`, `initialize`, `initialize`
 
 Uint8List? getUsbWriteDataWrapper({required String serialNumber}) =>
     RustLib.instance.api.crateApiGetUsbWriteDataWrapper(serialNumber: serialNumber);
@@ -50,6 +51,56 @@ Future<String> verifyAddress({
 
 Future<String> signPsbt({required String serialNumber, required String psbtStr, required bool testnet}) =>
     RustLib.instance.api.crateApiSignPsbt(serialNumber: serialNumber, psbtStr: psbtStr, testnet: testnet);
+
+Future<bool> isWalletPolicyRegistered({
+  required String serialNumber,
+  required String descriptor,
+  required bool testnet,
+}) => RustLib.instance.api.crateApiIsWalletPolicyRegistered(
+  serialNumber: serialNumber,
+  descriptor: descriptor,
+  testnet: testnet,
+);
+
+Future<void> registerWalletPolicy({
+  required String serialNumber,
+  required String descriptor,
+  required bool testnet,
+  String? name,
+}) => RustLib.instance.api.crateApiRegisterWalletPolicy(
+  serialNumber: serialNumber,
+  descriptor: descriptor,
+  testnet: testnet,
+  name: name,
+);
+
+Future<String> verifyWalletAddress({
+  required String serialNumber,
+  required String descriptor,
+  required bool testnet,
+  required BitBoxKeychain keychain,
+  required int index,
+}) => RustLib.instance.api.crateApiVerifyWalletAddress(
+  serialNumber: serialNumber,
+  descriptor: descriptor,
+  testnet: testnet,
+  keychain: keychain,
+  index: index,
+);
+
+Future<String> signWalletPsbt({
+  required String serialNumber,
+  required String descriptor,
+  required String psbtStr,
+  required bool testnet,
+}) => RustLib.instance.api.crateApiSignWalletPsbt(
+  serialNumber: serialNumber,
+  descriptor: descriptor,
+  psbtStr: psbtStr,
+  testnet: testnet,
+);
+
+enum BitBoxKeychain { receive, change }
 
 class DeviceInfo {
   final String name;

@@ -12,6 +12,7 @@ anyhow = "1.0"
 tokio = { version = "1.40", features = ["rt", "sync"] }
 lazy_static = "1.5"
 bitcoin = { version = "0.32", features = ["base64"] }
+miniscript = "12.0.0"
 bitbox-api = { git = "https://github.com/ben-kaufman/bitbox-api-rs", rev = "9f20d81686fa8321c11586cbdc967cc11f3ab26a", default-features = false, features = ["tokio", "multithreaded"] }
 async-trait = "0.1"
 
@@ -25,4 +26,3 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
 lto = true
 opt-level = "z"
 strip = true
-

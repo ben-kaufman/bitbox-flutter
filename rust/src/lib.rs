@@ -1,5 +1,6 @@
 pub mod api;
 mod usb_bridge;
+mod wallet_policy;
 
 #[cfg(not(feature = "bull_sdk"))]
 #[cfg_attr(not(frb_expand), path = "bridge_generated.rs")]
